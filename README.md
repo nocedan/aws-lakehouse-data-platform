@@ -169,5 +169,110 @@ pip freeze > requirements.txt
 Instalar o client do aws para conectar com o Redshift via credenciais.
 
 msiexec.exe /i https://awscli.amazonaws.com/AWSCLIV2.msi
-
 aws --version
+aws login
+
+aws redshift-serverless get-credentials --workgroup-name myworkgroup --db-name dev --region us-east-2 --profile default
+
+aws sts get-caller-identity --profile default
+
+Configure o Cluster do Redshift (Workspace neste caso) para ser publicamente acessível.
+
+
+Após descobrir o grupo de segurança 
+aws redshift-serverless get-workgroup --workgroup-name myworkgroup --region us-east-2 --profile default  | jq '.workgroup.securityGroupIds'
+
+"sg-06490937e96b1ed81"
+
+
+Libere o acesso:
+
+meu ip
+(Invoke-WebRequest -Uri "https://checkip.amazonaws.com").Content.Trim()
+
+aws ec2 authorize-security-group-ingress --group-id sg-06490937e96b1ed81 --protocol tcp --port 5439 --cidr 179.135.238.237/32 --region us-east-2 --profile default
+
+A porta está acessível: 
+Test-NetConnection -ComputerName myworkgroup.396768596145.us-east-2.redshift-serverless.amazonaws.com -Port 5439
+
+
+
+aws redshift-serverless get-workgroup --workgroup-name myworkgroup --region us-east-2 --profile default
+
+
+vpc-061faf1ae5ffd07b3
+
+
+us-east-2a 172.31.0.0/20
+us-east-2c 172.31.32.0/20
+us-east-2b 172.31.16.0/20
+
+Criando subnets públicas
+
+aws ec2 create-subnet --vpc-id vpc-061faf1ae5ffd07b3 --cidr-block 172.31.48.0/24 --availability-zone us-east-2a --region us-east-2 --profile default
+
+aws ec2 create-subnet --vpc-id vpc-061faf1ae5ffd07b3 --cidr-block 172.31.49.0/24 --availability-zone us-east-2b --region us-east-2 --profile default
+
+aws ec2 create-subnet --vpc-id vpc-061faf1ae5ffd07b3 --cidr-block 172.31.50.0/24 --availability-zone us-east-2c --region us-east-2 --profile default
+
+
+# 1. Verifique se as subnets foram criadas
+aws ec2 describe-subnets --filters "Name=vpc-id,Values=vpc-061faf1ae5ffd07b3" --region us-east-2 --profile default
+
+2. Habilitar IP público nas novas subnets
+aws ec2 modify-subnet-attribute --subnet-id subnet-07a282d1f8cbfd440 --map-public-ip-on-launch --region us-east-2 --profile default
+aws ec2 modify-subnet-attribute --subnet-id subnet-085468e52285240bb --map-public-ip-on-launch --region us-east-2 --profile default
+aws ec2 modify-subnet-attribute --subnet-id subnet-03f92c672f0727bea --map-public-ip-on-launch --region us-east-2 --profile default
+
+Sub-rede
+subnet-07a282d1f8cbfd440,
+subnet-085468e52285240bb,
+subnet-03f92c672f0727bea,
+
+3. Verificar Internet Gateway
+aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=vpc-061faf1ae5ffd07b3" --region us-east-2 --profile default
+
+4. Criar Route Table
+aws ec2 create-route-table --vpc-id vpc-061faf1ae5ffd07b3 --region us-east-2 --profile default | jq '.RouteTable.RouteTableId'
+
+
+
+6. Associar subnets à Route Table
+5. Adicionar rota para internet
+aws ec2 create-route --route-table-id rtb-05f4254242443
+
+
+Credenciais do redshift:
+
+namespace: dvdrentalsnamespace
+banco de dados: dev
+user: admin
+password: YZDYhdmxm669.-
+
+# Como testar a conexão do Redshift Serverless da máquina local
+
+Assim valido:
+  - que tenho acesso
+  - que a VPC, security group, subnets e route table estão configuradas de forma adequada.
+
+aws redshift-data execute-statement --workgroup-name dvdrentalsworkgroup --database dev --sql "select 1;"
+aws redshift-data get-statement-result --id 161c4eef-8dbc-4507-a043-fafc59ded88e
+
+aws redshift-data execute-statement --workgroup-name myworkgroup --database dev --sql "select 3.14;"
+aws redshift-data get-statement-result --id c9f32308-8dd8-4745-bd17-072adadefda2
+
+aws redshift-data execute-statement --workgroup-name dvdrentalsworkgroup --database dev --sql "SELECT * FROM awsdatacatalog.dvdrentals.rental limit 5;"
+
+aws redshift-data get-statement-result --id 9f7abbe6-4c0d-475b-bfd3-53e213cb26a1
+
+
+conda create -n dbt-env python=3.11 -y
+conda activate dbt-env
+pip install "dbt-core~=1.8.9" "dbt-redshift~=1.8.0"
+dbt --version
+
+pip install "botocore[crt]"
+
+## Criar um Cluster Redshift para conseguir completar
+
+https://docs.getdbt.com/guides/redshift?step=1
