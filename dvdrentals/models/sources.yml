@@ -8,3 +8,5 @@ sources:
       - name: film
       - name: film_category
       - name: customer
+      - name: rental
+      - name: inventory
