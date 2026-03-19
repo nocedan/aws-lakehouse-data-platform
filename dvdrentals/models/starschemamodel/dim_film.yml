@@ -1,0 +1,31 @@
+models:
+  - name: dim_film
+    description: The dim_film dimension table, containing one row per film with details about the film and its category.
+    columns:
+      - name: film_id
+        description: The unique key of the film dimension.
+        data_tests:
+          - not_null
+          - unique
+      - name: title
+        description: The title of the film.
+      - name: description
+        description: A description of the film.
+      - name: release_year
+        description: The year the film was released.
+      - name: rental_duration
+        description: The duration of the rental period for the film in days.
+      - name: rental_rate
+        description: The rental rate for the film in USD. 
+      - name: length
+        description: The length of the film in minutes. 
+      - name: replacement_cost
+        description: The cost to replace the film in USD.
+      - name: rating        
+        description: The rating of the film (e.g. G, PG, PG-13, R).
+      - name: last_update
+        description: The timestamp of the last update to the film record.
+      - name: category_id
+        description: The foreign key relating to the category of the film.
+      - name: film_category_last_update
+        description: The timestamp of the last update to the film category record. This is included here to allow for easier tracking of when category changes occur for a film.
