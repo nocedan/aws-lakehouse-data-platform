@@ -26,6 +26,8 @@ rental_duration_actual
 delay_days
 is_delayed
 
+
+
 Therefore, the original tables needed to be extracted in order to implement this star schema are:
 dim_film: inventory, film, film_category.
 dim_customer: customer.
@@ -283,46 +285,6 @@ No Redshift é necessário criar um schema
 
 create schema if not exists starschema;
 
-As tabelas disponibilizadas no database dvdrentals são
+Useful guide to dbt:
 
-- inventory
-- film_category
-- customer
-- film
-- rental
-
-Destas serão produzidas as dimensões
-
-- dim_film
-- dim_customer
-- dim_dates
-
-e fact rentals.
-
-dim_film
------------
-
-dim_customer
------------
-
-dim_dates
------------
-
-fact_rentals
------------
-rental_id (PK)
-customer_id (FK)
-film_id (FK)
-rental_date_id (FK)
-return_date_id (FK)
-
--- measures
-rental_duration_expected
-rental_duration_actual
-delay_days
-is_delayed
-
-
-
-vpc-061faf1ae5ffd07b3
-subnet-085468e52285240bb
+https://docs.getdbt.com/guides/redshift?step=10

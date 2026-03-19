@@ -4,14 +4,14 @@ dvdrentals:
     dev:
       type: redshift
       method: iam
-      host: dvdrentalsworkgroup.396768596145.us-east-2.redshift-serverless.amazonaws.com
+      host: myworkgroup.396768596145.us-east-2.redshift-serverless.amazonaws.com
       port: 5439
       database: dev
-      workgroup: dvdrentalsworkgroup
+      workgroup: myworkgroup
       schema: starschema
       region: us-east-2
       threads: 1
       iam_profile: default
       user: admin
       is_serverless: true
-      serverless_work_group: dvdrentalsworkgroup
+      serverless_work_group: myworkgroup
