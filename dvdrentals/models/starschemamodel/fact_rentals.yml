@@ -1,0 +1,31 @@
+model:
+  - name: fact_rentals
+    description: The fact_rentals fact table, containing one row per rental transaction with details
+      about the rental, including foreign keys to the dim_customer, dim_film, and dim_dates dimension tables.
+    columns:
+      - name: rental_key
+        description: The surrogate key for the fact_rentals fact table.
+        data_tests:
+          - not_null
+          - unique
+      - name: rental_id
+        description: The unique key of the rental transaction.
+        data_tests:
+          - not_null
+          - unique  
+      - name: customer_key
+        description: The foreign key relating to the dim_customer dimension.
+      - name: film_key
+        description: The foreign key relating to the dim_film dimension.
+      - name: rental_date_key
+        description: The foreign key relating to the dim_dates dimension for the rental date.
+      - name: return_date_key
+        description: The foreign key relating to the dim_dates dimension for the return date.
+      - name: rental_duration_expected
+        description: The expected duration of the rental in days, based on the rental_duration field from the dim_film dimension.
+      - name: rental_duration_actual
+        description: The actual duration of the rental in days, calculated as the difference between the return date and the rental date.
+      - name: delay_days
+        description: The number of days the rental was delayed, calculated as the difference between the actual rental duration and the expected rental duration. A positive value indicates a delay, while a negative value indicates an early return.
+      - name: is_delayed
+        description: A boolean indicating whether the rental was delayed (true) or not (false), based on whether the delay_days is greater than 0.

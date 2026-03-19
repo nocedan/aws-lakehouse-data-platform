@@ -1,0 +1,20 @@
+model:
+  name: dim_dates
+  description: Dimensional table for dates
+  columns:
+    date_key:
+      description: Surrogate key for the date
+    date:
+      description: The date
+    year:
+      description: The year
+    quarter:
+      description: The quarter
+    month:
+      description: The month
+    day:
+      description: The day
+    day_of_week:
+      description: The day of the week
+    is_weekend:
+      description: Flag indicating if the date is a weekend

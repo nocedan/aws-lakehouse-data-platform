@@ -255,15 +255,15 @@ Assim valido:
   - que tenho acesso
   - que a VPC, security group, subnets e route table estão configuradas de forma adequada.
 
-aws redshift-data execute-statement --workgroup-name dvdrentalsworkgroup --database dev --sql "select 1;"
-aws redshift-data get-statement-result --id 161c4eef-8dbc-4507-a043-fafc59ded88e
+aws redshift-data execute-statement --workgroup-name dvdrentalsworkgroup --database dev --sql "select awsdatacatalog.dvdrentals.film limit 1;"
+aws redshift-data get-statement-result --id 181fdacf-a518-429d-a3b5-66b2468a363b
 
 aws redshift-data execute-statement --workgroup-name myworkgroup --database dev --sql "select 3.14;"
 aws redshift-data get-statement-result --id c9f32308-8dd8-4745-bd17-072adadefda2
 
-aws redshift-data execute-statement --workgroup-name dvdrentalsworkgroup --database dev --sql "SELECT * FROM awsdatacatalog.dvdrentals.rental limit 5;"
+aws redshift-data execute-statement --workgroup-name dvdrentalsworkgroup --database dev --sql "SELECT * FROM awsdatacatalog.dvdrentals.film limit 1;"
 
-aws redshift-data get-statement-result --id 9f7abbe6-4c0d-475b-bfd3-53e213cb26a1
+aws redshift-data get-statement-result --id 5a29d86d-468d-492a-b00c-87af88f2201c
 
 
 conda create -n dbt-env python=3.11 -y
@@ -276,3 +276,53 @@ pip install "botocore[crt]"
 ## Criar um Cluster Redshift para conseguir completar
 
 https://docs.getdbt.com/guides/redshift?step=1
+
+# Construir um Star Schema no dbt para disponibilizar as views
+
+No Redshift é necessário criar um schema
+
+create schema if not exists starschema;
+
+As tabelas disponibilizadas no database dvdrentals são
+
+- inventory
+- film_category
+- customer
+- film
+- rental
+
+Destas serão produzidas as dimensões
+
+- dim_film
+- dim_customer
+- dim_dates
+
+e fact rentals.
+
+dim_film
+-----------
+
+dim_customer
+-----------
+
+dim_dates
+-----------
+
+fact_rentals
+-----------
+rental_id (PK)
+customer_id (FK)
+film_id (FK)
+rental_date_id (FK)
+return_date_id (FK)
+
+-- measures
+rental_duration_expected
+rental_duration_actual
+delay_days
+is_delayed
+
+
+
+vpc-061faf1ae5ffd07b3
+subnet-085468e52285240bb

@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: dvdrentals
+    database: awsdatacatalog
+    schema: dvdrentals
+    tables:
+      - name: film
+      - name: film_category
+      - name: customer
+      - name: rental
+      - name: inventory
