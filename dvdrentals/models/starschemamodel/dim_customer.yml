@@ -1,0 +1,30 @@
+models:
+  - name: dim_customer
+    description: The dim_customer dimension table, containing one row per customer with details about the customer.
+    columns:
+      - name: customer_key
+        description: The surrogate key for the customer dimension.
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: The unique key of the customer dimension.
+        data_tests:
+          - not_null
+          - unique
+      - name: first_name
+        description: The first name of the customer.
+      - name: last_name
+        description: The last name of the customer.
+      - name: email
+        description: The email address of the customer.
+      - name: address_id
+        description: The foreign key relating to the address of the customer.
+      - name: activebool
+        description: A boolean indicating whether the customer is active (true) or inactive (false).
+      - name: create_date
+        description: The date when the customer record was created.
+      - name: last_update
+        description: The timestamp of the last update to the customer record.
+      - name: active
+        description: A boolean indicating whether the customer is active (true) or inactive (false).

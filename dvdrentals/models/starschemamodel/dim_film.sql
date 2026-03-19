@@ -18,6 +18,7 @@ film_category.last_update as film_category_last_update
 from film join film_category on film.film_id = film_category.film_id
 )
 select 
+  {{ dbt_utils.generate_surrogate_key(['film_id']) }} as film_key,
   film_id,
   title,
   description,

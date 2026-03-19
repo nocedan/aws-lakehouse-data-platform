@@ -2,6 +2,11 @@ models:
   - name: dim_film
     description: The dim_film dimension table, containing one row per film with details about the film and its category.
     columns:
+      - name: film_key
+        description: The surrogate key for the film dimension.
+        data_tests:
+          - not_null
+          - unique
       - name: film_id
         description: The unique key of the film dimension.
         data_tests:
