@@ -10,3 +10,4 @@ sources:
       - name: customer
       - name: rental
       - name: inventory
+      - name: category

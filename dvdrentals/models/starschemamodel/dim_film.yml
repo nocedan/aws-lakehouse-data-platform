@@ -34,3 +34,5 @@ models:
         description: The foreign key relating to the category of the film.
       - name: film_category_last_update
         description: The timestamp of the last update to the film category record. This is included here to allow for easier tracking of when category changes occur for a film.
+      - name: category_name
+        description: The name of the category the film belongs to. This is included here to allow for easier analysis of film categories without needing to join to the category dimension.
