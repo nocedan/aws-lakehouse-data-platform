@@ -1,10 +1,24 @@
-# Arquitetura VPC — Data Lake Pipeline
+# Arquitetura — Data Lake Pipeline
 
 ## Visão Geral
 
 Pipeline de dados composto por RDS Postgres (fonte), Glue ETL (processamento), S3 (Data Lake em formato Iceberg), e Redshift Serverless (Analytics/BI), todos dentro de uma VPC na região `us-east-2`.
 
 ---
+
+## Data Lake
+
+Um bucket no S3 com a arquitetura medallion:
+
+dvdrentals-datalake:
+
+  - landing-layer/
+
+  - transformation-layer/
+
+  - serving-layer/
+
+onde as tabelas no formato Iceberg serão escritas pelo Glue Job que lê dados do RDS Postgres.
 
 ## Estrutura da VPC
 

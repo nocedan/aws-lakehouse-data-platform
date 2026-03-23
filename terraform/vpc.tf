@@ -1,0 +1,30 @@
+module "vpc" {
+  source = "terraform-aws-modules/vpc/aws"
+  version = "6.0.1"
+  
+  name = "dvdrentals-datalake-vpc"
+  cidr = "10.0.0.0/16"
+
+  azs             = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+  enable_nat_gateway = true
+  single_nat_gateway = true
+  one_nat_gateway_per_az = false
+
+  enable_public_redshift = true # <= By default Redshift subnets will be associated with the private route table
+# Precisa adicionar:
+# redshift_subnets = ["10.0.201.0/24", "10.0.202.0/24", "10.0.203.0/24"]
+
+  tags = {
+    Terraform = "true"
+    Environment = "dev"
+  }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = module.vpc.vpc_id
+  service_name = "com.amazonaws.${var.region}.s3"
+  route_table_ids = module.vpc.private_route_table_ids
+}
