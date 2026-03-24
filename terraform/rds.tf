@@ -6,7 +6,7 @@ module "db" {
   engine            = "postgres"
   engine_version    = "17.6"
   instance_class    = "db.t4g.micro"
-  allocated_storage = 1
+  allocated_storage       = 20     # minimum allowed, already overkill for 3MB
 
   db_name  = "dvdrentals"
   username = var.postgres_username
@@ -32,7 +32,7 @@ module "db" {
 
   # DB subnet group
   create_db_subnet_group = true
-  subnet_ids             = [module.vpc.private_subnets[0]]
+  subnet_ids             = module.vpc.private_subnets
 
   # DB parameter group
   family = "postgres17"
@@ -40,6 +40,8 @@ module "db" {
   # DB option group
   major_engine_version = "17"
 
-  # Database Deletion Protection
-  deletion_protection = true
+  deletion_protection     = false  # allows terraform destroy
+  skip_final_snapshot     = true   # no error on destroy
+  # publicly_accessible     = true   # for testing purposes, not recommended for production
+  storage_encrypted       = false  # for testing purposes, not recommended for production
 }

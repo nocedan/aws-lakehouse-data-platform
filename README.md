@@ -1,92 +1,337 @@
-# aws-etl-platform
-End to end aws etl platform using Postgres, s3, Glue, Airflow, Iceberg, Redshift and dbt
+# Aws Data Engineering Batch Platform
+End to end aws ETL platform using Postgres as a data source, s3 as Data Lake Storage, Glue Jobs for ingesting data, Iceberg and Glue data catalog as lakehouse components and dbt running over Redshift to model data and serve. Terraform is used in order to build the project infrastructure in a repeatable way.
 
 https://www.notion.so/Capstone-Project-3252a2f939f6803d93e8e229a4b8800f
 
-The objective of the initial demo is to transform the dvdrentals original Postgres database into a star schema available in Redshift so that Analytics users can cluster users by preffered movie category and verify if there is any correlation between movie genre and delays (when rental_date + rental_duration < return_date).
+## 1. Platform Architecture
 
-The star schema is defined by:
+The platform architecture at AWS is described in details [here](terraform/vpc_architecture.md) 
 
-Business process: rentals
-Grain: individual rentals (rental_id)
-Dimensions for these cases are: dim_film, dim_customer, dim_dates
-Facts:
-
-fact_rentals
------------
-rental_id (PK)
-customer_id (FK)
-film_id (FK)
-rental_date_id (FK)
-return_date_id (FK)
-
--- measures
-rental_duration_expected
-rental_duration_actual
-delay_days
-is_delayed
-
-
-
-Therefore, the original tables needed to be extracted in order to implement this star schema are:
-dim_film: inventory, film, film_category.
-dim_customer: customer.
-fact_rentals: rental
-
-## 0. Install requirements
-
-- AWS Client
-
-## 1. Postgres sample database
-
-Here follows the steps necessary to load the dvdrentals(https://neon.com/postgresql/postgresql-getting-started/load-postgresql-sample-database) sample database:
-
-host: postgres-sample-database.crwu02mq48w6.us-east-2.rds.amazonaws.com
-port: 5432
-dbname: postgres-sample-database
-user: postgres
-password: system-hero
-
-Connect to the RDS database and create a new dvdrental database which will recieve the load
-
-```bash
-psql --host=postgres-sample-database.crwu02mq48w6.us-east-2.rds.amazonaws.com --port=5432 --username=postgres --password --dbname=postgres-sample-database
+```
+Internet / PC Local
+        │
+        ▼
+┌──────────────────────────────────────────────────────────┐
+│  VPC 172.31.0.0/16                                        │
+│                                                           │
+│  ┌─────────────── Subnets Públicas ───────────────────┐  │
+│  │                                                     │  │
+│  │   NAT Gateway ◄──── (saída das subnets privadas)   │  │
+│  │                                                     │  │
+│  │   Redshift Serverless (acesso IAM externo)          │  │
+│  │                                                     │  │
+│  └──────────────────────┬──────────────────────────────┘  │
+│                         │ IGW                             │
+│  ┌─────────────── Subnets Privadas ───────────────────┐  │
+│  │                                                     │  │
+│  │   AWS Glue ETL Jobs ──────────────────────────┐    │  │
+│  │                                               │    │  │
+│  │   RDS Postgres (fonte)                        │    │  │
+│  │                                               ▼    │  │
+│  └───────────────────────────────────────────────┼────┘  │
+│                                                   │       │
+│                              S3 Gateway Endpoint  │       │
+└───────────────────────────────────────────────────┼───────┘
+                                                    │
+                                                    ▼
+                                              S3 — Data Lake
+                                              (Iceberg Tables)
 ```
 
+---
+
+## Business Analytics goals
+
+The objective is to transform the dvdrentals sample Postgres database into a star schema available in Redshift so that Analytics users can cluster users by preffered movie category and verify if there is any correlation between movie genre and delays, when rental_date + rental_duration < return_date.
+
+The star schema is defined in four steps:
+
+  1. Business process: rentals
+  2. Grain: individual rentals (rental_id)
+  3. Dimensions for these cases are: dim_film, dim_customer, dim_dates
+  4. Facts: rental events and related measures
+
+# Star Schema — dvdrentals
+
+## Tabelas de origem
+
+As tabelas utilizadas do database **dvdrentals** são:
+
+- `inventory`
+- `film_category`
+- `customer`
+- `film`
+- `rental`
+- `category`
+
+---
+
+## Dimensões e Fato
+
+A partir dessas tabelas serão produzidas as dimensões:
+
+- `dim_film`
+- `dim_customer`
+- `dim_dates`
+
+e a tabela fato `fact_rentals`.
+
+---
+
+## dim_film
+
+| Coluna | Tipo / Papel |
+|---|---|
+| `film_key` | PK (surrogate key) |
+| `film_id` | NK (natural key) |
+| `title` | |
+| `description` | |
+| `release_year` | |
+| `rental_duration` | dias permitidos de locação |
+| `rental_rate` | |
+| `length` | |
+| `replacement_cost` | |
+| `rating` | |
+| `last_update` | |
+| `category_id` | FK → `category` |
+| `film_category_last_update` | |
+
+---
+
+## dim_customer
+
+| Coluna | Tipo / Papel |
+|---|---|
+| `customer_key` | PK (surrogate key) |
+| `customer_id` | NK (natural key) |
+| `store_id` | |
+| `first_name` | |
+| `last_name` | |
+| `email` | |
+| `address_id` | |
+| `activebool` | |
+| `create_date` | |
+| `last_update` | |
+| `active` | |
+
+---
+
+## dim_dates
+
+| Coluna | Tipo / Papel |
+|---|---|
+| `date_key` | PK (surrogate key) |
+| `full_date` | data completa |
+| `day_of_week` | |
+| `day_of_month` | |
+| `month` | |
+| `quarter` | |
+| `year` | |
+| `is_weekend` | |
+
+> **Nota:** `rental_date` e `return_date` são atributos de `fact_rentals` que referenciam `dim_dates` via FK — não colunas da própria dimensão.
+
+---
+
+## fact_rentals
+
+| Coluna | Tipo / Papel |
+|---|---|
+| `rental_key` | PK (surrogate key) |
+| `rental_id` | NK (natural key) |
+| `customer_key` | FK → `dim_customer` |
+| `film_key` | FK → `dim_film` |
+| `rental_date_key` | FK → `dim_dates` |
+| `return_date_key` | FK → `dim_dates` |
+
+### Medidas
+
+| Coluna | Descrição |
+|---|---|
+| `rental_duration_expected` | duração prevista da locação (dias), vinda de `film.rental_duration` |
+| `rental_duration_actual` | duração real da locação (dias), calculada como `return_date − rental_date` |
+| `delay_days` | dias de atraso (`rental_duration_actual − rental_duration_expected`); 0 se negativo |
+| `is_delayed` | booleano — `true` se `delay_days > 0` |
+
+## 0. Required Software
+
+- AWS Client and Account
+- Python 3.11.15 (Miniconda with pip for requirements.txt)
+- Terraform v1.14.7
+- dbt Core: 1.11.7
+- dbt-postgres: 1.10.0
+- dbt-redshift: 1.10.1
+
+## Building the pipeline
+
+First login at aws
+
+```bash
+aws login
+aws configure set region us-west-2
+```
+
+Terraform commands in order to build the infrastructure.
+
+```bash
+cd terraform
+terraform init
+terraform validate
+terraform plan
+terraform apply
+```
+
+# 1. PostgreSQL Sample Database
+
+The following steps describe how to load the [dvdrentals sample database](https://neon.com/postgresql/postgresql-getting-started/load-postgresql-sample-database) into your RDS instance.
+
+---
+
+### Step 1 — Retrieve Database Connection Details
+
+Run the following command to get the database outputs from Terraform:
+
+```bash
+terraform output
+```
+
+Expected output:
+
+```
+db_endpoint = "dvdrentals-database.cbia4semc2rv.us-west-2.rds.amazonaws.com:5432"
+db_hostname = "dvdrentals"
+db_password = <sensitive>
+db_port     = 5432
+db_username = "postgres_master_user"
+```
+
+> **Note:** The password is marked as sensitive. Retrieve it from AWS Secrets Manager — see Step 2.
+
+---
+
+### Step 2 — Retrieve the Database Password
+
+Fetch the password from AWS Secrets Manager:
+
+```bash
+aws secretsmanager get-secret-value \
+  --secret-id <secret-arn> \
+  --region us-west-2 \
+  --query SecretString \
+  --output text
+```
+
+Example password: `NevhwOZ03W:A*rQfWLPy?ll9SMt!`
+
+---
+
+### Step 3 — Connect to the Database
+
+Since the RDS instance is on a **private subnet**, direct access from your machine is not possible. Connect through **AWS CloudShell** in the console.
+
+```bash
+psql \
+  --host=dvdrentals-database.cbia4semc2rv.us-west-2.rds.amazonaws.com \
+  --port=5432 \
+  --username=postgres_master_user \
+  --password \
+  --dbname=dvdrentals
+```
+
+---
+
+### Step 4 — Create the Target Database
+
+Once connected, create the `dvdrentals` database that will receive the restored data:
+
 ```sql
-SELECT schema_name
-FROM information_schema.schemata;
+-- List existing schemas (optional, for reference)
+SELECT schema_name FROM information_schema.schemata;
 
-CREATE DATABASE dvdrental;
+-- Create the target database
+CREATE DATABASE dvdrentals;
 
+-- Confirm it was created
 SELECT datname FROM pg_database;
 ```
 
-Load the database dvdrental.zip in a s3 bucket:
+---
 
+### Step 5 — Upload the Backup File to S3
+
+Upload the `dvdrental.zip` file to the S3 bucket:
+
+```
 bucket-name: dvd-rentals-database
+```
 
-Crie um Endpoint do tipo Gateway para o s3 e associe à tabela de rotas das subnets utilizadas pelo cloudshell.
-Novamente, no Cloudshell.
+> **Note:** Verify that the **S3 Gateway Endpoint** is associated with the route table of the private subnets used by CloudShell. Without this, CloudShell will not be able to reach the S3 bucket.
 
-bash ```
+---
+
+### Step 6 — Download and Extract the Backup in CloudShell
+
+If you are currently connected to the database, exit first:
+
+```bash
+exit
+```
+
+Then download and extract the backup:
+
+```bash
 aws s3 cp s3://dvd-rentals-database/dvdrental.zip .
 
+unzip dvdrental.zip
+```
+
+---
+
+### Step 7 — Restore the Database
+
+Run `pg_restore` to load the data into the `dvdrentals` database:
+
+```bash
 pg_restore \
-  -d "host=postgres-sample-database.crwu02mq48w6.us-east-2.rds.amazonaws.com \
+  --no-owner \
+  --no-privileges \
+  --clean \
+  --if-exists \
+  -d "host=dvdrentals-database.cbia4semc2rv.us-west-2.rds.amazonaws.com \
   port=5432 \
-  user=postgres \
-  dbname=dvdrental \
+  user=postgres_master_user \
+  dbname=dvdrentals \
   sslmode=verify-full \
   sslrootcert=/certs/global-bundle.pem" \
   dvdrental.tar
 ```
 
-Verifique que os dados foram carregados:
+---
 
-bash```
-\c dvdrental # a database criada no restore
-\dt
+### Step 8 — Verify the Restore
+
+Reconnect to the database using the connection command from Step 3, then confirm the tables were loaded:
+
+```sql
+\c dvdrentals   -- switch to the restored database
+\dt             -- list tables
+```
+
+Expected output:
+
+```
+                   List of relations
+ Schema |     Name      | Type  |        Owner
+--------+---------------+-------+----------------------
+ public | actor         | table | postgres_master_user
+ public | address       | table | postgres_master_user
+ public | category      | table | postgres_master_user
+ public | city          | table | postgres_master_user
+ public | country       | table | postgres_master_user
+ public | customer      | table | postgres_master_user
+ public | film          | table | postgres_master_user
+ public | film_actor    | table | postgres_master_user
+ public | film_category | table | postgres_master_user
 ```
 
 ## 2. Glue job to ingest data into the Landing Zone

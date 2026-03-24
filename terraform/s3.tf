@@ -3,7 +3,8 @@ module "s3_bucket" {
     version = "3.0.0"
 
     bucket = "${var.datalake_bucket_name}"
-    acl    = "private"
+    control_object_ownership = true
+    object_ownership          = "BucketOwnerEnforced"  # ACLs disabled (AWS default)
 }
 
 resource "aws_s3_object" "landing_layer" {
@@ -29,5 +30,6 @@ module "s3_bucket_glue_scripts" {
     version = "3.0.0"
 
     bucket = "${var.glue_scripts_bucket_name}"
-    acl    = "private"
+    control_object_ownership = true
+    object_ownership          = "BucketOwnerEnforced"  # ACLs disabled (AWS default)
 }

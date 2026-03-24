@@ -19,7 +19,7 @@ variable region {
 variable "postgres_username" {
     description = "Username for the PostgreSQL database"
     type        = string
-    default     = "admin"
+    default     = "postgres_master_user"
 }
 
 variable "postgres_password" {
