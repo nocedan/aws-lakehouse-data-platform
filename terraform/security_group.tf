@@ -8,7 +8,15 @@ resource "aws_security_group" "main" {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
-    self        = true  # permite tráfego entre recursos do mesmo SG
+    self        = true
+  }
+
+  ingress {
+    description = "Glue self-referencing - all ports"
+    from_port   = 0
+    to_port     = 65535
+    protocol    = "tcp"
+    self        = true
   }
 
   ingress {
