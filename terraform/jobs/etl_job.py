@@ -19,6 +19,12 @@ spark = glueContext.spark_session
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
+# Added to the original code to enable Glue Data Catalog integration
+spark.conf.set("spark.sql.catalog.glue_catalog", "org.apache.iceberg.spark.SparkCatalog")
+spark.conf.set("spark.sql.catalog.glue_catalog.warehouse", "s3://terraform-data-lake-bucket/")
+spark.conf.set("spark.sql.catalog.glue_catalog.catalog-impl", "org.apache.iceberg.aws.glue.GlueCatalog")
+spark.conf.set("spark.sql.catalog.glue_catalog.io-impl", "org.apache.iceberg.aws.s3.S3FileIO")
+
 # Default ruleset used by all target nodes with data quality enabled
 DEFAULT_DATA_QUALITY_RULESET = """
     Rules = [
@@ -32,7 +38,7 @@ inventory_node1773772837637 = glueContext.create_dynamic_frame.from_options(
     connection_options = {
         "useConnectionProperties": "true",
         "dbtable": "public.inventory",
-        "connectionName": "Postgresql connection",
+        "connectionName": "postgres_connection",
     },
     transformation_ctx = "inventory_node1773772837637"
 )
@@ -43,7 +49,7 @@ film_category_node1773773262888 = glueContext.create_dynamic_frame.from_options(
     connection_options = {
         "useConnectionProperties": "true",
         "dbtable": "public.film_category",
-        "connectionName": "Postgresql connection",
+        "connectionName": "postgres_connection",
     },
     transformation_ctx = "film_category_node1773773262888"
 )
@@ -54,7 +60,7 @@ customer_node1773772492046 = glueContext.create_dynamic_frame.from_options(
     connection_options = {
         "useConnectionProperties": "true",
         "dbtable": "public.customer",
-        "connectionName": "Postgresql connection",
+        "connectionName": "postgres_connection",
     },
     transformation_ctx = "customer_node1773772492046"
 )
@@ -65,7 +71,7 @@ film_node1773773114450 = glueContext.create_dynamic_frame.from_options(
     connection_options = {
         "useConnectionProperties": "true",
         "dbtable": "public.film",
-        "connectionName": "Postgresql connection",
+        "connectionName": "postgres_connection",
     },
     transformation_ctx = "film_node1773773114450"
 )
@@ -76,7 +82,7 @@ rental_node1773755904864 = glueContext.create_dynamic_frame.from_options(
     connection_options = {
         "useConnectionProperties": "true",
         "dbtable": "public.rental",
-        "connectionName": "Postgresql connection",
+        "connectionName": "postgres_connection",
     },
     transformation_ctx = "rental_node1773755904864"
 )
@@ -87,7 +93,7 @@ PostgreSQL_node1774012613873 = glueContext.create_dynamic_frame.from_options(
     connection_options = {
         "useConnectionProperties": "true",
         "dbtable": "public.category",
-        "connectionName": "Postgresql connection",
+        "connectionName": "postgres_connection",
     },
     transformation_ctx = "PostgreSQL_node1774012613873"
 )
