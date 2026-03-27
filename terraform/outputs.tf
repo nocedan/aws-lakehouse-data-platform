@@ -39,3 +39,18 @@ output "db_port" {
     value       = module.db.db_instance_port
     description = "The port on which the database accepts connections"
 }
+
+# output "redshift_endpoint" {
+#   value       = aws_redshiftserverless_workgroup.redshift.endpoint
+#   description = "The connection endpoint for the Redshift Serverless workgroup"
+# }
+
+# output "redshift_workgroup_name" {
+#   value       = aws_redshiftserverless_workgroup.redshift.workgroup_name
+#   description = "The name of the Redshift Serverless workgroup"
+# }
+
+# output "redshift_spectrum_role_arn" {
+#   value       = aws_iam_role.redshift_spectrum_role.arn
+#   description = "ARN of the IAM role for Redshift Spectrum"
+# }

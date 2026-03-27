@@ -54,6 +54,63 @@ resource "aws_iam_role_policy_attachment" "glue_rds" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonRDSFullAccess"
 }
 
+# ✅ FIX 1 — Inline policy: Glue Catalog + Lake Formation permissions
+resource "aws_iam_role_policy" "glue_catalog_lakeformation" {
+  name = "glue-catalog-lakeformation"
+  role = aws_iam_role.glue_job_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "GlueCatalogAccess"
+        Effect = "Allow"
+        Action = [
+          "glue:GetDatabase",
+          "glue:GetDatabases",
+          "glue:GetTable",
+          "glue:GetTables",
+          "glue:GetPartition",
+          "glue:GetPartitions",
+          "glue:CreateDatabase",
+          "glue:CreateTable",
+          "glue:UpdateTable",
+          "glue:DeleteTable",
+          "glue:BatchGetPartition"
+        ]
+        Resource = "*"
+      },
+      {
+        Sid    = "LakeFormationDataAccess"
+        Effect = "Allow"
+        Action = [
+          "lakeformation:GetDataAccess",
+          "lakeformation:GrantPermissions",
+          "lakeformation:GetResourceLFTags",
+          "lakeformation:ListLFTags"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# ✅ FIX 2 — Lake Formation: registra o role como admin do data lake
+locals {
+  lake_formation_admins = toset([
+    aws_iam_role.redshift_spectrum_role.arn,  # newly added
+    "arn:aws:iam::396768596145:user/adm_user",
+    aws_iam_role.glue_job_role.arn,  # newly added
+  ])
+}
+
+resource "aws_lakeformation_data_lake_settings" "glue_admin" {
+  admins = local.lake_formation_admins
+ 
+  allow_full_table_external_data_access = true
+
+}
+
 # Fetch the secret created automatically by RDS
 data "aws_secretsmanager_secret_version" "db" {
   secret_id = module.db.db_instance_master_user_secret_arn

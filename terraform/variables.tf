@@ -31,7 +31,7 @@ variable "postgres_password" {
 variable "authorized_ips" {
   description = "List of authorized IPs for Redshift access"
   type        = list(string)
-  default     = ["179.135.247.101/32"] # Permite acesso de IP específico (substitua pelo seu IP ou faixa de IPs autorizados)
+  default     = ["201.95.197.3/32"] # Permite acesso de IP específico (substitua pelo seu IP ou faixa de IPs autorizados)
   #Para encontrar seu IP público:
   # (Invoke-WebRequest -Uri "https://checkip.amazonaws.com").Content.Trim()
 }

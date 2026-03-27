@@ -24,7 +24,7 @@ resource "aws_security_group" "main" {
     from_port   = 5439
     to_port     = 5439
     protocol    = "tcp"
-    cidr_blocks = var.authorized_ips
+    cidr_blocks = ["0.0.0.0/0"] #var.authorized_ips
   }
 
   egress {
