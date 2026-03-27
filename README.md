@@ -25,30 +25,30 @@ Just built an end-to-end AWS batch data platform covering the full data engineer
 
 # 0. Deployment instructions
 
-  See instructions [here](deployment-instructions.md).
+See instructions [here](deployment-instructions.md).
 
 # 1. Network Architecture
 
 ```
-Internet / PC Local
+Internet / Local PC
         │
         ▼
 ┌──────────────────────────────────────────────────────────┐
 │  VPC 172.31.0.0/16                                        │
 │                                                           │
-│  ┌─────────────── Subnets Públicas ───────────────────┐  │
+│  ┌─────────────── Public Subnets ───────────────────┐  │
 │  │                                                     │  │
-│  │   NAT Gateway ◄──── (saída das subnets privadas)   │  │
+│  │   NAT Gateway ◄──── (outbound from private subnets) │  │
 │  │                                                     │  │
-│  │   Redshift Serverless (acesso IAM externo)          │  │
+│  │   Redshift Serverless (external IAM access)         │  │
 │  │                                                     │  │
 │  └──────────────────────┬──────────────────────────────┘  │
 │                         │ IGW                             │
-│  ┌─────────────── Subnets Privadas ───────────────────┐  │
+│  ┌─────────────── Private Subnets ───────────────────┐  │
 │  │                                                     │  │
 │  │   AWS Glue ETL Jobs ──────────────────────────┐    │  │
 │  │                                               │    │  │
-│  │   RDS Postgres (fonte)                        │    │  │
+│  │   RDS Postgres (source)                       │    │  │
 │  │                                               ▼    │  │
 │  └───────────────────────────────────────────────┼────┘  │
 │                                                   │       │
@@ -64,20 +64,20 @@ Internet / PC Local
 
 # 2. Business Analytics Goals
 
-The objective is to transform the dvdrentals sample Postgres database into a star schema available in Redshift so that Analytics users can cluster users by preffered movie category and verify if there is any correlation between movie genre and delays, when rental_date + rental_duration < return_date.
+The objective is to transform the dvdrentals sample Postgres database into a star schema available in Redshift so that Analytics users can cluster users by preferred movie category and verify if there is any correlation between movie genre and delays, when rental_date + rental_duration < return_date.
 
 The star schema is defined in four steps:
 
-  1. Business process: rentals
-  2. Grain: individual rentals (rental_id)
-  3. Dimensions for these cases are: dim_film, dim_customer, dim_dates
-  4. Facts: rental events and related measures
+1. Business process: rentals
+2. Grain: individual rentals (rental_id)
+3. Dimensions for these cases are: dim_film, dim_customer, dim_dates
+4. Facts: rental events and related measures
 
 # 3. Star Schema
 
-## Tabelas de origem
+## Source tables
 
-As tabelas utilizadas do database **dvdrentals** são:
+The tables used from the **dvdrentals** database are:
 
 - `inventory`
 - `film_category`
@@ -88,28 +88,28 @@ As tabelas utilizadas do database **dvdrentals** são:
 
 ---
 
-## Dimensões e Fato
+## Dimensions and Fact
 
-A partir dessas tabelas serão produzidas as dimensões:
+From these tables, the following dimensions will be produced:
 
 - `dim_film`
 - `dim_customer`
 - `dim_dates`
 
-e a tabela fato `fact_rentals`.
+and the fact table `fact_rentals`.
 
 ---
 
 ## dim_film
 
-| Coluna | Tipo / Papel |
+| Column | Type / Role |
 |---|---|
 | `film_key` | PK (surrogate key) |
 | `film_id` | NK (natural key) |
 | `title` | |
 | `description` | |
 | `release_year` | |
-| `rental_duration` | dias permitidos de locação |
+| `rental_duration` | allowed rental days |
 | `rental_rate` | |
 | `length` | |
 | `replacement_cost` | |
@@ -122,7 +122,7 @@ e a tabela fato `fact_rentals`.
 
 ## dim_customer
 
-| Coluna | Tipo / Papel |
+| Column | Type / Role |
 |---|---|
 | `customer_key` | PK (surrogate key) |
 | `customer_id` | NK (natural key) |
@@ -140,10 +140,10 @@ e a tabela fato `fact_rentals`.
 
 ## dim_dates
 
-| Coluna | Tipo / Papel |
+| Column | Type / Role |
 |---|---|
 | `date_key` | PK (surrogate key) |
-| `full_date` | data completa |
+| `full_date` | full date |
 | `day_of_week` | |
 | `day_of_month` | |
 | `month` | |
@@ -151,13 +151,13 @@ e a tabela fato `fact_rentals`.
 | `year` | |
 | `is_weekend` | |
 
-> **Nota:** `rental_date` e `return_date` são atributos de `fact_rentals` que referenciam `dim_dates` via FK — não colunas da própria dimensão.
+> **Note:** `rental_date` and `return_date` are attributes of `fact_rentals` that reference `dim_dates` via FK — not columns of the dimension itself.
 
 ---
 
 ## fact_rentals
 
-| Coluna | Tipo / Papel |
+| Column | Type / Role |
 |---|---|
 | `rental_key` | PK (surrogate key) |
 | `rental_id` | NK (natural key) |
@@ -166,11 +166,11 @@ e a tabela fato `fact_rentals`.
 | `rental_date_key` | FK → `dim_dates` |
 | `return_date_key` | FK → `dim_dates` |
 
-### Medidas
+### Measures
 
-| Coluna | Descrição |
+| Column | Description |
 |---|---|
-| `rental_duration_expected` | duração prevista da locação (dias), vinda de `film.rental_duration` |
-| `rental_duration_actual` | duração real da locação (dias), calculada como `return_date − rental_date` |
-| `delay_days` | dias de atraso (`rental_duration_actual − rental_duration_expected`); 0 se negativo |
-| `is_delayed` | booleano — `true` se `delay_days > 0` |
+| `rental_duration_expected` | expected rental duration (days), from `film.rental_duration` |
+| `rental_duration_actual` | actual rental duration (days), calculated as `return_date − rental_date` |
+| `delay_days` | delay in days (`rental_duration_actual − rental_duration_expected`); 0 if negative |
+| `is_delayed` | boolean — `true` if `delay_days > 0` |
