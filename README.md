@@ -6,7 +6,7 @@ Just built an end-to-end AWS batch data platform covering the full data engineer
 
 **What's the real accomplishment:** This project can serve as a foundation for a Lakehouse where Data Scientists, Data Engineers, and Business Analysts can build data products.
 
-**The business case example:** A star schema model derived from the dvdrentals sample [database] (https://neon.com/postgresql/postgresql-getting-started/postgresql-sample-database), ready to be queried and help investigating whether rental delays are correlated with a customer's preferred category.
+**The business case example:** A star schema model derived from the dvdrentals sample [database](https://neon.com/postgresql/postgresql-getting-started/postgresql-sample-database), ready to be queried and help investigating whether rental delays are correlated with a customer's preferred category.
 
 **The stack:**
 - PostgreSQL as source → AWS Glue (Spark) for ingestion → S3 Data Lake (Iceberg) → Redshift Serverless for serving.
