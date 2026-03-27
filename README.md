@@ -6,17 +6,17 @@ Just built an end-to-end AWS batch data platform covering the full data engineer
 
 **What's the real accomplishment:** This project can serve as a foundation for a Lakehouse where Data Scientists, Data Engineers, and Business Analysts can build data products.
 
-**The business goal example:** A star schema model derived from the dvdrentals sample database (dim_film, dim_customer, dim_dates, fact_rentals), ready to be queried and investigate whether rental delays are correlated with a customer's preferred category.
+**The business case example:** A star schema model derived from the dvdrentals sample [database] (https://neon.com/postgresql/postgresql-getting-started/postgresql-sample-database), ready to be queried and help investigating whether rental delays are correlated with a customer's preferred category.
 
 **The stack:**
-- PostgreSQL as source → AWS Glue (Spark/Iceberg) for ingestion → S3 Data Lake → Redshift Serverless for serving
-- dbt for star schema modeling
-- Terraform for repeatable, version-controlled infrastructure
-- Iceberg + Glue Data Catalog + Lake Formation as the lakehouse layer
+- PostgreSQL as source → AWS Glue (Spark) for ingestion → S3 Data Lake (Iceberg) → Redshift Serverless for serving.
+- dbt for data modeling and transform raw data into useful information following software development best practices.
+- Terraform infrastructure as code for repeatable, version-controlled infrastructure.
+- Iceberg + Glue Data Catalog + Lake Formation as the lakehouse layer.
 
 **Why Redshift over Athena?** Redshift is better suited for heavier, concurrent analytical workloads at the serving layer.
 
-**One learning:** Lake Formation permission management at the column level still has Terraform quirks — something I'm actively working through.
+**One painful learning:** Lake Formation permission management at table and column level still has Terraform quirks.
 
 **Coming next:**
 → Apache Airflow for orchestration
