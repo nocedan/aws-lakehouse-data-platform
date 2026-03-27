@@ -1,4 +1,4 @@
-# AWS Data Engineering Batch Platform
+# AWS Lakehouse Data Platform
 
 Just built an end-to-end AWS batch data platform covering the full data engineering lifecycle (ingestion → storage → transformation → serving). Inspired by @Joe Reis's [Data Engineering Specialization](https://www.deeplearning.ai/courses/data-engineering/) capstone project.
 
@@ -15,7 +15,7 @@ Just built an end-to-end AWS batch data platform covering the full data engineer
 - Iceberg + Glue Data Catalog + Lake Formation as the lakehouse layer
 - [Network Architecture](#1-network-architecture)
 
-**Why Redshift over Athena?** More complex to implement here, but better suited for heavier, concurrent analytical workloads at the serving layer.
+**Why Redshift over Athena?** Redshift is better suited for heavier, concurrent analytical workloads at the serving layer.
 
 **One learning:** Lake Formation permission management at the column level still has Terraform quirks — something I'm actively working through.
 
@@ -27,7 +27,7 @@ Just built an end-to-end AWS batch data platform covering the full data engineer
 
 See instructions [here](deployment-instructions.md).
 
-# 1. Network Architecture
+# 1. Platform Architecture
 
 ```
 Internet / Local PC
@@ -62,7 +62,7 @@ Internet / Local PC
 
 ---
 
-# 2. Business Analytics Goals
+# 2. Example Business Analytics Goals
 
 The objective is to transform the dvdrentals sample Postgres database into a star schema available in Redshift so that Analytics users can cluster users by preferred movie category and verify if there is any correlation between movie genre and delays, when rental_date + rental_duration < return_date.
 
