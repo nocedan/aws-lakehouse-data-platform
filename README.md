@@ -13,7 +13,6 @@ Just built an end-to-end AWS batch data platform covering the full data engineer
 - dbt for star schema modeling
 - Terraform for repeatable, version-controlled infrastructure
 - Iceberg + Glue Data Catalog + Lake Formation as the lakehouse layer
-- [Network Architecture](#1-network-architecture)
 
 **Why Redshift over Athena?** Redshift is better suited for heavier, concurrent analytical workloads at the serving layer.
 
