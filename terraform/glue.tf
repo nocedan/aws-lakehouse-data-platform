@@ -111,6 +111,18 @@ resource "aws_lakeformation_data_lake_settings" "glue_admin" {
 
 }
 
+resource "aws_lakeformation_permissions" "glue_dvdrentals_db" {
+  principal   = aws_iam_role.glue_job_role.arn
+  permissions = ["ALL"]
+
+  database {
+    name = "dvdrentals"
+  }
+
+  # ✅ ADD THIS
+  depends_on = [aws_lakeformation_data_lake_settings.glue_admin]
+}
+
 # Fetch the secret created automatically by RDS
 data "aws_secretsmanager_secret_version" "db" {
   secret_id = module.db.db_instance_master_user_secret_arn
