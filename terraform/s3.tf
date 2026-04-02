@@ -25,6 +25,12 @@ resource "aws_s3_object" "serving_layer" {
   content = ""
 }
 
+resource "aws_s3_object" "rds_database_backups" {
+  bucket  = module.s3_bucket.s3_bucket_id
+  key     = "rds-database-backups/dvdrental.zip"
+  source = "${path.module}/data/dvdrental.zip"
+}
+
 module "s3_bucket_glue_scripts" {
     source = "terraform-aws-modules/s3-bucket/aws"
     version = "3.0.0"

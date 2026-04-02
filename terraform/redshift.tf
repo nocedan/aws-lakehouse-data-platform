@@ -188,4 +188,6 @@ resource "aws_lakeformation_permissions" "data_location_access" {
   data_location {
     arn = module.s3_bucket.s3_bucket_arn
   }
+
+  depends_on = [aws_lakeformation_data_lake_settings.glue_admin]
 }
