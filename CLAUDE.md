@@ -8,6 +8,20 @@ End-to-end AWS batch data platform: **PostgreSQL (RDS) → AWS Glue (Spark/Icebe
 
 ## Key Commands
 
+### Miniconda environment
+
+```bash
+# If non existing
+conda create -n dbt-env python=3.11.15
+
+# To activate this project's environment use
+conda activate dbt-env
+
+#If not installed
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
 ### Infrastructure
 ```bash
 cd terraform
