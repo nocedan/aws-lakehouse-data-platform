@@ -63,7 +63,7 @@ RDS PostgreSQL (private subnet)
 Each `.tf` file manages one resource type: `rds.tf`, `glue.tf`, `s3.tf`, `redshift.tf`, `vpc.tf`, `security_group.tf`. Region and bucket names are variables in `variables.tf` — changing the region requires updating `variables.tf` and `profiles.yml`.
 
 ### Glue ETL (`terraform/jobs/etl_job.py`)
-Extracts 6 tables from RDS via a named Glue connection (`postgres_connection`) and writes them as Iceberg v2 Parquet tables to S3. Uses append-or-create logic: checks if the table exists in the catalog before deciding to `.append()` or `.create()`. Iceberg catalog is registered as `glue_catalog` in Spark config.
+Extracts 6 tables from RDS via a named Glue connection (`postgres_connection`) and writes them as Iceberg v2 Parquet tables to S3. Table metadata (name, compression, optional custom SQL) is declared in the `TABLES` list using the `TableConfig` dataclass. The `run_extraction()` function loops over that list; append-or-create logic is handled by `table_exists()`. All Glue runtime imports are deferred inside functions or the `__main__` guard so the module can be imported locally without the Glue runtime.
 
 ### dbt Project (`dvdrentals/`)
 - **Sources**: reads from `awsdatacatalog.dvdrentals.*` (the Glue Data Catalog landing-layer tables) via Redshift Spectrum
@@ -79,6 +79,13 @@ Lake Formation table/column permissions cannot be fully managed via Terraform (k
 - `redshift-spectrum-role`
 
 Also verify both principals appear under **Data Locations** for `s3://terraform-data-lake-bucket`.
+
+### Local testing (Glue ETL)
+```bash
+pip install -r requirements-dev.txt
+pytest tests/ -v
+```
+No AWS credentials or Spark runtime required — tests cover config integrity and pure helper functions.
 
 ## Important Notes
 
