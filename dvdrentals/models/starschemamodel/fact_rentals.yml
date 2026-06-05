@@ -1,4 +1,4 @@
-model:
+models:
   - name: fact_rentals
     description: The fact_rentals fact table, containing one row per rental transaction with details
       about the rental, including foreign keys to the dim_customer, dim_film, and dim_dates dimension tables.
