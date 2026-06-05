@@ -240,3 +240,13 @@ dbt run --debug --select starschemamodel
 Once complete, the following tables will be available in the **Redshift Query Editor v2**:
 
 ![Alt text](image-1.png "Optional title")
+
+
+---
+
+## Step 6 — Test plan
+
+- [] `conda run -n dbt-env pytest tests/ -v` → 9 passed
+- [] `conda run -n dbt-env dbt debug` → All checks passed
+- [] `conda run -n dbt-env dbt run` → PASS=4 WARN=0 ERROR=0
+- [] Trigger Glue job: `aws glue start-job-run --job-name dvdrentals-extraction-tf`
