@@ -9,11 +9,6 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-seeds:
-  # Builds seeds into '<your_schema_name>_raw'
-  dvdrentals:
-    +schema: raw
-
 models:
   dvdrentals:
     +static_analysis: strict

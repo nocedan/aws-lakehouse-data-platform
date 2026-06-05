@@ -221,16 +221,19 @@ pip install -r requirements.txt
 After filling the correct hostname (e.g. redshift-serverless-workgroup.396768596145.us-west-2.redshift-serverless.amazonaws.com)
 in the `profiles.yml` file. copy it to 
 ```
-cp profiles.yml ../../.dbt/
+cp profiles.yml ~/.dbt/
 cd dvdrentals
 dbt --version
 dbt debug
 ```
 
+!Make sure the Redshift hostname is valid. Do not mistake it for the RDS hostname in the same project.
+
 At this point, some connectivity problems may occur. For example, if your network have outgoing firewalls.
 
 ### 6.2 Run the Star Schema Models
 ```bash
+dbt deps
 dbt run --debug --select starschemamodel
 ```
 
