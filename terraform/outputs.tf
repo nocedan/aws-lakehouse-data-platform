@@ -40,17 +40,37 @@ output "db_port" {
     description = "The port on which the database accepts connections"
 }
 
-# output "redshift_endpoint" {
-#   value       = aws_redshiftserverless_workgroup.redshift.endpoint
-#   description = "The connection endpoint for the Redshift Serverless workgroup"
-# }
+output "db_address" {
+  value       = module.db.db_instance_address
+  description = "Hostname of the RDS instance (without port)"
+}
 
-# output "redshift_workgroup_name" {
-#   value       = aws_redshiftserverless_workgroup.redshift.workgroup_name
-#   description = "The name of the Redshift Serverless workgroup"
-# }
+output "redshift_endpoint" {
+  value       = aws_redshiftserverless_workgroup.redshift.endpoint[0].address
+  description = "The connection endpoint for the Redshift Serverless workgroup"
+}
 
-# output "redshift_spectrum_role_arn" {
-#   value       = aws_iam_role.redshift_spectrum_role.arn
-#   description = "ARN of the IAM role for Redshift Spectrum"
-# }
+output "redshift_workgroup_name" {
+  value       = aws_redshiftserverless_workgroup.redshift.workgroup_name
+  description = "The name of the Redshift Serverless workgroup"
+}
+
+output "redshift_spectrum_role_arn" {
+  value       = aws_iam_role.redshift_spectrum_role.arn
+  description = "ARN of the IAM role for Redshift Spectrum"
+}
+
+output "restore_lambda_name" {
+  value       = aws_lambda_function.restore_db.function_name
+  description = "Name of the Lambda that restores the dvdrental dump into RDS"
+}
+
+output "glue_job_name" {
+  value       = aws_glue_job.etl_job.name
+  description = "Name of the Glue ingestion job"
+}
+
+output "region" {
+  value       = var.region
+  description = "AWS region the platform is deployed in"
+}
