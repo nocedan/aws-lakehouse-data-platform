@@ -28,7 +28,7 @@ resource "terraform_data" "restore_db_image" {
     command     = <<-EOT
       set -euo pipefail
       aws ecr get-login-password --region ${var.region} | docker login --username AWS --password-stdin ${local.ecr_registry}
-      docker build --platform linux/amd64 -t ${local.restore_image_uri} ${local.restore_lambda_src}
+      docker buildx build --platform linux/amd64 --provenance=false -t ${local.restore_image_uri} ${local.restore_lambda_src}
       docker push ${local.restore_image_uri}
     EOT
   }
