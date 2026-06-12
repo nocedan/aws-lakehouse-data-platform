@@ -18,11 +18,8 @@ import argparse
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from deploylib import dbt, glue, redshift, restore, tf, ui  # noqa: E402
+from deploylib import dbt, glue, redshift, restore, tf, ui
 
 
 def stage_check(args) -> None:
