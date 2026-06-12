@@ -62,7 +62,7 @@ def stage_infra(args) -> None:
     ui.banner("Terraform: init / validate / apply")
     tf.init()
     tf.validate()
-    tf.apply(auto_approve=getattr(args, "auto_approve", False))
+    tf.apply(auto_approve=args.auto_approve)
 
 
 def stage_restore_db(args) -> None:
