@@ -130,7 +130,7 @@ def stage_resume(args) -> None:
     ui.banner("Deployment complete")
 
 
-def main(argv=None) -> None:
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -176,12 +176,12 @@ def main(argv=None) -> None:
             )
         stage_parser.set_defaults(func=func)
 
-    args = parser.parse_args(argv)
+    args = parser.parse_args()
     try:
         args.func(args)
     except subprocess.CalledProcessError as exc:
-        print(f"\ncommand failed: {' '.join(map(str, exc.cmd))}", file=sys.stderr)
-        sys.exit(exc.returncode or 1)
+        print(f"\ncommand failed: {exc.cmd}", file=sys.stderr)
+        sys.exit(exc.returncode)
     except (RuntimeError, TimeoutError) as exc:
         print(f"\nerror: {exc}", file=sys.stderr)
         sys.exit(1)
