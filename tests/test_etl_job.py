@@ -1,8 +1,6 @@
-from unittest.mock import MagicMock
-
 from etl_job import (
     TABLES, TableConfig,
-    iceberg_path, get_sql, table_exists,
+    iceberg_path, get_sql,
     DATABASE, LANDING_PREFIX,
 )
 
@@ -49,18 +47,3 @@ def test_get_sql_custom_has_no_unresolved_placeholder():
     film = next(t for t in TABLES if t.name == "film")
     assert "{alias}" not in get_sql(film, "x")
 
-
-# ── table_exists ──────────────────────────────────────────────────────────────
-
-def test_table_exists_true():
-    mock_table = MagicMock()
-    mock_table.name = "rental"  # MagicMock(name=...) sets display name, not .name attr
-    mock_spark = MagicMock()
-    mock_spark.catalog.listTables.return_value = [mock_table]
-    assert table_exists(mock_spark, DATABASE, "rental") is True
-
-
-def test_table_exists_false():
-    mock_spark = MagicMock()
-    mock_spark.catalog.listTables.return_value = []
-    assert table_exists(mock_spark, DATABASE, "rental") is False

@@ -43,10 +43,6 @@ def get_sql(table: TableConfig, alias: str = "src") -> str:
     return table.sql.format(alias=alias) if table.sql else f"SELECT * FROM {alias}"
 
 
-def table_exists(spark, database: str, table_name: str) -> bool:
-    return table_name in {t.name for t in spark.catalog.listTables(database)}
-
-
 # ── ETL ───────────────────────────────────────────────────────────────────────
 
 def run_extraction(glueContext, spark) -> None:
@@ -78,7 +74,7 @@ def run_extraction(glueContext, spark) -> None:
         frame.toDF().createOrReplaceTempView(alias)
         result_df = spark.sql(get_sql(table, alias))
 
-        exists = table_exists(spark, DATABASE, table.name)
+        exists = table.name in {t.name for t in spark.catalog.listTables(DATABASE)}
         writer = (
             result_df.writeTo(f"{CATALOG}.{DATABASE}.{table.name}")
             .tableProperty("format-version", "2")
