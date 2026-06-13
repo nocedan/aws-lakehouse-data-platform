@@ -204,5 +204,6 @@ resource "aws_glue_job" "etl_job" {
 resource "aws_s3_object" "glue_etl_script" {
   bucket = module.s3_bucket_glue_scripts.s3_bucket_id
   key    = "jobs/etl_job.py"
-  source = "jobs/etl_job.py" # Make sure this file exists locally
+  source = "../jobs/etl_job.py" # Make sure this file exists locally
+  etag   = filemd5("../jobs/etl_job.py")
 }

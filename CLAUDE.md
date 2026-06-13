@@ -62,7 +62,7 @@ dbt run --debug --select starschemamodel     # verbose output
 ### Data Flow
 ```
 RDS PostgreSQL (private subnet)
-    → AWS Glue job (dvdrentals-extraction-tf)  [terraform/jobs/etl_job.py]
+    → AWS Glue job (dvdrentals-extraction-tf)  [jobs/etl_job.py]
     → S3 landing-layer (Iceberg tables, Glue Data Catalog: dvdrentals DB)
     → dbt on Redshift Serverless (reads via Redshift Spectrum + Lake Formation)
     → Redshift schema: starschema
@@ -76,8 +76,8 @@ RDS PostgreSQL (private subnet)
 ### Terraform Modules (`terraform/`)
 Each `.tf` file manages one resource type: `rds.tf`, `glue.tf`, `s3.tf`, `redshift.tf`, `vpc.tf`, `security_group.tf`. Region and bucket names are variables in `variables.tf` — changing the region requires updating `variables.tf` and `profiles.yml`.
 
-### Glue ETL (`terraform/jobs/etl_job.py`)
-Extracts 6 tables from RDS via a named Glue connection (`postgres_connection`) and writes them as Iceberg v2 Parquet tables to S3. Table metadata (name, compression, optional custom SQL) is declared in the `TABLES` list using the `TableConfig` dataclass. The `run_extraction()` function loops over that list; append-or-create logic is handled by `table_exists()`. All Glue runtime imports are deferred inside functions or the `__main__` guard so the module can be imported locally without the Glue runtime.
+### Glue ETL (`jobs/etl_job.py`)
+Extracts 6 tables from RDS via a named Glue connection (`postgres_connection`) and writes them as Iceberg v2 Parquet tables to S3. Table metadata (name, compression, extraction SQL — `DEFAULT_QUERY` or a custom query with an `{alias}` placeholder) is declared in the `TABLES` list using the `TableConfig` dataclass. The `run_extraction()` function loops over that list, appending to each Iceberg table if it already exists in the catalog and creating it otherwise. All Glue runtime imports are deferred inside functions or the `__main__` guard so the module can be imported locally without the Glue runtime.
 
 ### dbt Project (`dvdrentals/`)
 - **Sources**: reads from `awsdatacatalog.dvdrentals.*` (the Glue Data Catalog landing-layer tables) via Redshift Spectrum
@@ -99,7 +99,7 @@ Also verify both principals appear under **Data Locations** for `s3://terraform-
 pip install -r requirements-dev.txt
 pytest tests/ -v
 ```
-No AWS credentials or Spark runtime required — tests cover config integrity and pure helper functions.
+No AWS credentials or Spark runtime required — tests cover config integrity.
 
 ## Important Notes
 

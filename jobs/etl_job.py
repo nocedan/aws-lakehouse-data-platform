@@ -1,6 +1,5 @@
 import sys
 from dataclasses import dataclass
-from typing import Optional
 
 
 # ── Config ────────────────────────────────────────────────────────────────────
@@ -8,21 +7,23 @@ from typing import Optional
 @dataclass
 class TableConfig:
     name: str
-    compression: str          # "snappy" | "gzip"
-    sql: Optional[str] = None  # None → SELECT *; use {alias} placeholder
+    compression: str  # "snappy" | "gzip"
+    sql: str          # use {alias} placeholder for the source temp view
     source_schema: str = "public"
 
 
+DEFAULT_QUERY = "SELECT * FROM {alias}"
+
 TABLES: list[TableConfig] = [
-    TableConfig("inventory",     compression="snappy"),
-    TableConfig("film_category", compression="snappy"),
-    TableConfig("customer",      compression="gzip"),
+    TableConfig("inventory",     compression="snappy", sql=DEFAULT_QUERY),
+    TableConfig("film_category", compression="snappy", sql=DEFAULT_QUERY),
+    TableConfig("customer",      compression="gzip",   sql=DEFAULT_QUERY),
     TableConfig("film",          compression="snappy",
                 sql="SELECT film_id, title, description, release_year, "
                     "rental_duration, rental_rate, length, replacement_cost, "
                     "rating, last_update FROM {alias}"),
-    TableConfig("rental",        compression="gzip"),
-    TableConfig("category",      compression="gzip"),
+    TableConfig("rental",        compression="gzip",   sql=DEFAULT_QUERY),
+    TableConfig("category",      compression="gzip",   sql=DEFAULT_QUERY),
 ]
 
 DATABASE       = "dvdrentals"
@@ -31,20 +32,6 @@ WAREHOUSE      = "s3://terraform-data-lake-bucket/"
 LANDING_PREFIX = "landing-layer"
 CONNECTION     = "postgres_connection"
 DQ_RULESET     = "Rules = [ ColumnCount > 0 ]"
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def iceberg_path(table: TableConfig) -> str:
-    return f"s3://terraform-data-lake-bucket/{LANDING_PREFIX}/{DATABASE}/{table.name}"
-
-
-def get_sql(table: TableConfig, alias: str = "src") -> str:
-    return table.sql.format(alias=alias) if table.sql else f"SELECT * FROM {alias}"
-
-
-def table_exists(spark, database: str, table_name: str) -> bool:
-    return table_name in {t.name for t in spark.catalog.listTables(database)}
 
 
 # ── ETL ───────────────────────────────────────────────────────────────────────
@@ -76,13 +63,13 @@ def run_extraction(glueContext, spark) -> None:
             },
         )
         frame.toDF().createOrReplaceTempView(alias)
-        result_df = spark.sql(get_sql(table, alias))
+        result_df = spark.sql(table.sql.format(alias=alias))
 
-        exists = table_exists(spark, DATABASE, table.name)
+        exists = table.name in {t.name for t in spark.catalog.listTables(DATABASE)}
         writer = (
             result_df.writeTo(f"{CATALOG}.{DATABASE}.{table.name}")
             .tableProperty("format-version", "2")
-            .tableProperty("location", iceberg_path(table))
+            .tableProperty("location", f"{WAREHOUSE}{LANDING_PREFIX}/{DATABASE}/{table.name}")
             .tableProperty("write.parquet.compression-codec", table.compression)
         )
         writer.append() if exists else writer.create()
